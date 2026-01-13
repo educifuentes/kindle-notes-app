@@ -79,8 +79,7 @@ def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
                     "sub_section": sub_section,
                     "highlighted_text": "",
                     "note": None,
-                    "is_important": False,
-                    "is_very_important": False
+                    "is_important": False
                 }
                 rows.append(current_highlight)
                 is_note_pending = False
@@ -114,7 +113,7 @@ def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
     
     # Ensure all required columns exist
     # Ensure all required columns exist
-    required_cols = ["location", "page", "section", "sub_section", "highlighted_text", "note", "is_very_important", "is_important"]
+    required_cols = ["location", "page", "section", "sub_section", "highlighted_text", "note", "is_important"]
     for col in required_cols:
         if col not in df.columns:
             df[col] = None
@@ -157,26 +156,19 @@ def _classify_importance(note_text: str) -> Dict[str, bool]:
     """
     Classifies importance based on markers in the user note.
     Rules:
-    - is_very_important: if note starts with "wow iii" (case insensitive)
     - is_important: if note starts with "wow" (case insensitive)
     """
     if not note_text:
-        return {"is_important": False, "is_very_important": False}
+        return {"is_important": False}
     
     note_lower = note_text.strip().lower()
     
-    # Check for "wow iii" first (more specific)
-    is_very = note_lower.startswith("wow iii")
-    
     # Check for "wow"
     # Logic: If it starts with "wow iii", it also starts with "wow".
-    # The user defined them as separate rules. 
-    # Usually "Very Important" implies "Important".
     is_imp = note_lower.startswith("wow")
     
     return {
-        "is_important": is_imp,
-        "is_very_important": is_very
+        "is_important": is_imp
     }
 
 # ==========================================
@@ -200,9 +192,7 @@ def generate_markdown(df: pd.DataFrame, metadata: Dict[str, str]) -> str:
     for _, row in df.iterrows():
         # Importance and Location markers
         meta_label = ""
-        if row['is_very_important']:
-            meta_label = "🔥 **VERY IMPORTANT** "
-        elif row['is_important']:
+        if row['is_important']:
             meta_label = "⭐ **IMPORTANT** "
 
         # Location, Page and Section
