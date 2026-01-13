@@ -1,3 +1,6 @@
+# ==========================================
+# Imports and Constants
+# ==========================================
 import pandas as pd
 from bs4 import BeautifulSoup
 import re
@@ -13,9 +16,20 @@ from .constants import (
     CLASS_SECTION_HEADING
 )
 
+# ==========================================
+# Core Parsing Logic
+# ==========================================
+
 def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
     """
     Parses Kindle highlights HTML file and returns a DataFrame and book metadata.
+
+    Args:
+        html_content (str): The raw HTML content from the Kindle export.
+
+    Returns:
+        Tuple[pd.DataFrame, Dict[str, str]]: A tuple containing the highlights DataFrame 
+                                             and a dictionary of metadata (title, author).
     """
     soup = BeautifulSoup(html_content, "html.parser")
     
@@ -30,14 +44,19 @@ def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
     
     # Process highlights and notes
     rows = []
+    
+    # State variables for tracking context while iterating
     current_section = None
     current_highlight = None
     is_note_pending = False
+    
+    # Store pending note metadata if a note comes before a highlight (unlikely but handled)
     pending_loc = None
     pending_page = None
     pending_sub = None
     
     # Find all relevant nodes including section headings
+    # We select specific classes to filter out noise
     nodes = soup.find_all(class_=[CLASS_SECTION_HEADING, CLASS_NOTE_HEADING, CLASS_NOTE_TEXT])
     
     for node in nodes:
@@ -103,6 +122,10 @@ def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
             
     return df, metadata
 
+# ==========================================
+# Extraction Helpers
+# ==========================================
+
 def _extract_location(heading_text: str) -> str:
     """Extracts location from Kindle note heading."""
     # Example: "... - Location 123 | ..."
@@ -124,6 +147,10 @@ def _extract_sub_section(heading_text: str) -> str:
         return match.group(1).strip()
     return ""
 
+# ==========================================
+# Classification Helpers
+# ==========================================
+
 def _classify_importance(note_text: str) -> Dict[str, bool]:
     """
     Classifies importance based on markers in the user note.
@@ -140,6 +167,10 @@ def _classify_importance(note_text: str) -> Dict[str, bool]:
         "is_important": is_imp,
         "is_very_important": is_very
     }
+
+# ==========================================
+# Output Generation
+# ==========================================
 
 def generate_markdown(df: pd.DataFrame, metadata: Dict[str, str]) -> str:
     """
