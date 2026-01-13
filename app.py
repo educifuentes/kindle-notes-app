@@ -40,29 +40,32 @@ def main():
             # Generate Markdown
             markdown_text = generate_markdown(df, metadata)
 
-            # UI Layout for results
-            col1, col2 = st.columns([1, 1])
+            
+            st.subheader("Markdown Preview")
+            # st.markdown(markdown_text)
 
-            with col1:
-                st.subheader("Markdown Preview")
-                st.markdown(markdown_text)
-
-            with col2:
-                st.subheader("Raw Markdown & Download")
-                st.code(markdown_text, language="markdown")
                 
-                # Download button
-                file_name = f"{metadata['title'].replace(' ', '_')}_notes.md"
-                st.download_button(
-                    label="Download Markdown (.md)",
-                    data=markdown_text,
-                    file_name=file_name,
-                    mime="text/markdown"
-                )
+                
+            # Download button
+            file_name = f"{metadata['title'].replace(' ', '_')}_notes.md"
+            st.download_button(
+                label="Download Markdown (.md)",
+                data=markdown_text,
+                file_name=file_name,
+                mime="text/markdown"
+            )
 
             # Show raw data optionally
             
-            st.dataframe(df)
+            st.dataframe(
+                df,
+                column_config={
+                    "highlighted_text": st.column_config.TextColumn(
+                        "Highlighted Text",
+                        width="large"
+                    )
+                }
+            )
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {str(e)}")
