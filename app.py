@@ -60,17 +60,17 @@ def main():
                     use_container_width=True
                 )
 
-            # Show raw data optionally
+            # # Show raw data optionally
             
-            st.dataframe(
-                df,
-                column_config={
-                    "highlighted_text": st.column_config.TextColumn(
-                        "Highlighted Text",
-                        width="large"
-                    )
-                }
-            )
+            # st.dataframe(
+            #     df,
+            #     column_config={
+            #         "highlighted_text": st.column_config.TextColumn(
+            #             "Highlighted Text",
+            #             width="large"
+            #         )
+            #     }
+            # )
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {str(e)}")
