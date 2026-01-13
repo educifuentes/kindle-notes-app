@@ -190,7 +190,6 @@ def generate_markdown(df: pd.DataFrame, metadata: Dict[str, str]) -> str:
     ]
 
     last_section = None
-    last_sub_section = None
 
     for _, row in df.iterrows():
         section = row['section']
@@ -201,21 +200,14 @@ def generate_markdown(df: pd.DataFrame, metadata: Dict[str, str]) -> str:
             if section:
                 lines.append(f"\n## {section}")
             last_section = section
-            last_sub_section = None  # Reset subsection when section changes
-
-        # Handle Subsection Header
-        if sub_section != last_sub_section:
-            if sub_section:
-                lines.append(f"\n### {sub_section}")
-            last_sub_section = sub_section
 
         # Highlight Body
         text = row['highlighted_text']
         note = row['note']
         
-        # Meta info (Location/Page)
+        # Meta info (Location/Page/Sub-section)
         loc_str = f"Loc: {row['location']}" if row['location'] else ""
-        page_str = f"Page: {row['page']}" if row['page'] else ""
+        page_str = f"Page: {row['page']}" if row['page'] else ""        
         meta_parts = filter(None, [loc_str, page_str])
         meta_str = " | ".join(meta_parts)
         meta_s = f" *({meta_str})*" if meta_str else ""

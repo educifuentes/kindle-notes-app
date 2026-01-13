@@ -42,18 +42,23 @@ def main():
 
             
             st.subheader("Markdown Preview")
-            # st.markdown(markdown_text)
+            with st.container(height=600):
+                st.markdown(markdown_text)
 
                 
                 
             # Download button
             file_name = f"{metadata['title'].replace(' ', '_')}_notes.md"
-            st.download_button(
-                label="Download Markdown (.md)",
-                data=markdown_text,
-                file_name=file_name,
-                mime="text/markdown"
-            )
+
+            _, col_btn, _ = st.columns([1, 2, 1])
+            with col_btn:
+                st.download_button(
+                    label="Download Markdown (.md)",
+                    data=markdown_text,
+                    file_name=file_name,
+                    mime="text/markdown",
+                    use_container_width=True
+                )
 
             # Show raw data optionally
             
