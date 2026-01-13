@@ -7,8 +7,6 @@ import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from .constants import (
-    IMPORTANT_MARKER,
-    VERY_IMPORTANT_MARKER,
     CLASS_BOOK_TITLE,
     CLASS_AUTHORS,
     CLASS_NOTE_HEADING,
@@ -79,7 +77,7 @@ def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
                     "page": page,
                     "section": current_section,
                     "sub_section": sub_section,
-                    "text": "",
+                    "highlighted_text": "",
                     "note": None,
                     "is_important": False,
                     "is_very_important": False
@@ -104,21 +102,25 @@ def parse_kindle_html(html_content: str) -> Tuple[pd.DataFrame, Dict[str, str]]:
                         "page": pending_page,
                         "section": current_section,
                         "sub_section": pending_sub,
-                        "text": "",
+                        "highlighted_text": "",
                         "note": text,
                         **_classify_importance(text)
                     })
                 is_note_pending = False
             elif current_highlight:
-                current_highlight["text"] = text
+                current_highlight["highlighted_text"] = text
                     
     df = pd.DataFrame(rows)
     
     # Ensure all required columns exist
-    required_cols = ["location", "page", "section", "sub_section", "text", "note", "is_important", "is_very_important"]
+    # Ensure all required columns exist
+    required_cols = ["location", "page", "section", "sub_section", "highlighted_text", "note", "is_very_important", "is_important"]
     for col in required_cols:
         if col not in df.columns:
             df[col] = None
+
+    # Reorder columns to match the requirement
+    df = df[required_cols]
             
     return df, metadata
 
@@ -154,15 +156,24 @@ def _extract_sub_section(heading_text: str) -> str:
 def _classify_importance(note_text: str) -> Dict[str, bool]:
     """
     Classifies importance based on markers in the user note.
-    Rules are defined in src/constants.py.
+    Rules:
+    - is_very_important: if note starts with "wow iii" (case insensitive)
+    - is_important: if note starts with "wow" (case insensitive)
     """
     if not note_text:
         return {"is_important": False, "is_very_important": False}
-        
-    is_very = VERY_IMPORTANT_MARKER in note_text
-    is_imp = IMPORTANT_MARKER in note_text
     
-    # Very important implies important? Usually, but here we keep them distinct as columns
+    note_lower = note_text.strip().lower()
+    
+    # Check for "wow iii" first (more specific)
+    is_very = note_lower.startswith("wow iii")
+    
+    # Check for "wow"
+    # Logic: If it starts with "wow iii", it also starts with "wow".
+    # The user defined them as separate rules. 
+    # Usually "Very Important" implies "Important".
+    is_imp = note_lower.startswith("wow")
+    
     return {
         "is_important": is_imp,
         "is_very_important": is_very
@@ -209,8 +220,8 @@ def generate_markdown(df: pd.DataFrame, metadata: Dict[str, str]) -> str:
         meta_info = " | ".join(filter(None, [loc_str, page_str, section_str]))
         
         # Formatting Highlight
-        if row['text']:
-            lines.append(f"> {row['text']}")
+        if row['highlighted_text']:
+            lines.append(f"> {row['highlighted_text']}")
             if meta_info:
                 lines.append(f"> *({meta_info})*")
         
