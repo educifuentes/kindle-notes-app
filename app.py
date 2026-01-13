@@ -56,7 +56,7 @@ def main():
 
             
             st.subheader("Preview")
-            with st.container(height=600):
+            with st.container(height=800):
                 st.markdown(markdown_text)
 
 
