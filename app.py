@@ -35,42 +35,30 @@ def main():
                 st.warning("No highlights or notes found in the uploaded file.")
                 return
 
-            st.success(f"Successfully processed highlights for: **{metadata['title']}** by {metadata['author']}")
-
             # Generate Markdown
             markdown_text = generate_markdown(df, metadata)
-
-            
-            st.subheader("Markdown Preview")
-            with st.container(height=600):
-                st.markdown(markdown_text)
-
-                
-                
-            # Download button
             file_name = f"{metadata['title'].replace(' ', '_')}_notes.md"
 
-            _, col_btn, _ = st.columns([1, 2, 1])
-            with col_btn:
-                st.download_button(
+         
+            st.success(f"Successfully processed highlights for: **{metadata['title']}** by {metadata['author']}")
+
+            st.download_button(
                     label="Download Markdown (.md)",
                     data=markdown_text,
                     file_name=file_name,
                     mime="text/markdown",
-                    use_container_width=True
+                    use_container_width=True,
+                    icon="⬇️"
                 )
 
-            # # Show raw data optionally
+     
+
+
             
-            # st.dataframe(
-            #     df,
-            #     column_config={
-            #         "highlighted_text": st.column_config.TextColumn(
-            #             "Highlighted Text",
-            #             width="large"
-            #         )
-            #     }
-            # )
+            st.subheader("Preview")
+            with st.container(height=600):
+                st.markdown(markdown_text)
+
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {str(e)}")
