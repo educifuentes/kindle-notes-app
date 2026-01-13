@@ -24,14 +24,6 @@ def main():
     html_content = None
     if uploaded_file is not None:
         html_content = uploaded_file.getvalue().decode("utf-8")
-    else:
-        # Fallback to local file for development/preview
-        try:
-            with open("sample.html", "r", encoding="utf-8") as f:
-                html_content = f.read()
-                st.info("Showing results for local file: `Flow-Notebook.html`")
-        except FileNotFoundError:
-            pass
 
     if html_content is not None:
         try:
