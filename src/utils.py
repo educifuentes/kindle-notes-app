@@ -189,38 +189,52 @@ def generate_markdown(df: pd.DataFrame, metadata: Dict[str, str]) -> str:
         ""
     ]
 
-    for _, row in df.iterrows():
-        # Importance and Location markers
-        meta_label = ""
-        if row['is_important']:
-            meta_label = "⭐ **IMPORTANT** "
+    last_section = None
+    last_sub_section = None
 
-        # Location, Page and Section
+    for _, row in df.iterrows():
+        section = row['section']
+        sub_section = row['sub_section']
+
+        # Handle Section Header
+        if section != last_section:
+            if section:
+                lines.append(f"\n## {section}")
+            last_section = section
+            last_sub_section = None  # Reset subsection when section changes
+
+        # Handle Subsection Header
+        if sub_section != last_sub_section:
+            if sub_section:
+                lines.append(f"\n### {sub_section}")
+            last_sub_section = sub_section
+
+        # Highlight Body
+        text = row['highlighted_text']
+        note = row['note']
+        
+        # Meta info (Location/Page)
         loc_str = f"Loc: {row['location']}" if row['location'] else ""
         page_str = f"Page: {row['page']}" if row['page'] else ""
+        meta_parts = filter(None, [loc_str, page_str])
+        meta_str = " | ".join(meta_parts)
+        meta_s = f" *({meta_str})*" if meta_str else ""
         
-        section_parts = []
-        if row['section']:
-            section_parts.append(row['section'])
-        if 'sub_section' in row and row['sub_section']:
-            section_parts.append(row['sub_section'])
+        # Importance
+        prefix = "⭐ **IMPORTANT** " if row.get('is_important') else ""
         
-        section_str = f"Section: {' > '.join(section_parts)}" if section_parts else ""
+        # Bullet item for highlight
+        if text:
+            highlight_line = f"- {text}{meta_s}"
+            lines.append(highlight_line)
         
-        meta_info = " | ".join(filter(None, [loc_str, page_str, section_str]))
-        
-        # Formatting Highlight
-        if row['highlighted_text']:
-            lines.append(f"> {row['highlighted_text']}")
-            if meta_info:
-                lines.append(f"> *({meta_info})*")
-        
-        # Formatting Note
-        if row['note']:
-            lines.append(f"\n{meta_label}**Note:** {row['note']}")
-        elif meta_label:
-            lines.append(f"\n{meta_label}")
+        # Note item (indented)
+        if note:
+            # Display the note as a sub-item
+            note_line = f"  - **Note:** {prefix}{note}"
+            lines.append(note_line)
+        elif prefix:
+            # Fallback if there is an importance flag but no note text (unlikely with current logic)
+            lines.append(f"  - {prefix}")
 
-        lines.extend(["", "---", ""])
-            
     return "\n".join(lines).strip()
